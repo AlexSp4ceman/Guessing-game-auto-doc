@@ -10,6 +10,7 @@ Dependencies: python-docx
 
 import ast
 import re
+import os
 from docx import Document
 from docx.shared import Inches
 from datetime import datetime
@@ -27,6 +28,22 @@ class DocumentationGenerator:
         """Initialize the documentation generator."""
         self.doc = Document()
         self.comments_data = []
+    
+    def cleanup_old_documentation(self, output_file):
+        """
+        Delete old documentation file if it exists.
+        
+        Args:
+            output_file (str): Path to the documentation file to delete
+        """
+        if os.path.exists(output_file):
+            try:
+                os.remove(output_file)
+                print(f"Deleted old documentation: {output_file}")
+            except Exception as e:
+                print(f"Warning: Could not delete old documentation: {e}")
+        else:
+            print("No old documentation found. Creating new file.")
     
     def parse_python_file(self, file_path):
         """
@@ -163,14 +180,17 @@ class DocumentationGenerator:
             else:
                 self.doc.add_paragraph("No comments found in this file.")
     
-    def generate_documentation(self, output_file='game_documentation.docx'):
+    def generate_documentation(self, output_file='Guessing_Game_Documentation.docx'):
         """
         Generate the complete Word documentation.
         
         Args:
             output_file (str): Name of the output Word document
         """
-        print("Generating documentation...")
+        print("Starting documentation generation...")
+        
+        # Clean up old documentation
+        self.cleanup_old_documentation(output_file)
         
         # Create document sections
         self.create_title_page()
@@ -183,6 +203,13 @@ class DocumentationGenerator:
         # Save document
         self.doc.save(output_file)
         print(f"Documentation generated successfully: {output_file}")
+        print(f"Total files processed: {len(self.comments_data)}")
+        
+        # Show statistics
+        total_comments = sum(len(file_data['comments']) for file_data in self.comments_data)
+        total_docstrings = sum(len(file_data['docstrings']) for file_data in self.comments_data)
+        print(f"Total comments extracted: {total_comments}")
+        print(f"Total docstrings extracted: {total_docstrings}")
 
 
 def main():
